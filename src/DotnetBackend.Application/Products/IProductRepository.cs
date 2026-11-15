@@ -8,5 +8,9 @@ public interface IProductsRepository
 
     Task<Product?> GetByIdAsync(Guid id);
 
+    Task<Product?> GetByIdIncludingInactiveAsync(Guid id);
+
     Task AddAsync(Product product);
+
+    Task UpdateAsync(Product product);
 }

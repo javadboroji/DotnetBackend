@@ -70,5 +70,55 @@ public class ProductService
         return product.Id;
     }
 
+    public async Task<bool> UpdateAsync(Guid id, UpdateProductRequestDto request)
+    {
+        var product = await _ProductsRepository.GetByIdAsync(id);
 
+        if (product is null)
+            return false;
+
+        var category = await _CategoryRepository.GetByIdAsync(request.CategoryId);
+
+        if (category is null)
+            throw new ArgumentException("Category not found.");
+
+        if (!category.IsActive)
+            throw new InvalidOperationException("Category is inactive.");
+
+        product.Update(request.Name, request.Price, request.Description);
+
+        product.ChangeCategory(request.CategoryId);
+
+
+        await _ProductsRepository.UpdateAsync(product);
+        return true;
+    }
+
+    public async Task<bool> DeactivateAsync(Guid id)
+    {
+        var product = await _ProductsRepository.GetByIdAsync(id);
+
+        if (product is null)
+            return false;
+
+        product.Deactivate();
+
+        await _ProductsRepository.UpdateAsync(product);
+
+        return true;
+    }
+
+    public async Task<bool> ActivateAsync(Guid id)
+    {
+        var product = await _ProductsRepository.GetByIdIncludingInactiveAsync(id);
+
+        if (product is null)
+            return false;
+
+        product.Activate();
+
+        await _ProductsRepository.UpdateAsync(product);
+
+        return true;
+    }
 }

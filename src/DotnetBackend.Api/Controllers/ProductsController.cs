@@ -42,4 +42,35 @@ public class ProductsController : ControllerBase
             new { id = productId }
         );
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequestDto request)
+    {
+        var updated = await _productService.UpdateAsync(id, request);
+        if (!updated)
+            return NotFound();
+
+        return Ok();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Deactivate(Guid id)
+    {
+        var deactivated = await _productService.DeactivateAsync(id);
+        if (!deactivated)
+            return NotFound();
+
+        return Ok();
+    }
+    [HttpPost("{id:guid}/activate")]
+    public async Task<IActionResult> Activate(Guid id)
+    {
+        var activated = await _productService.ActivateAsync(id);
+        if (!activated)
+            return NotFound();
+
+        return Ok();
+    }
 }
+
+
