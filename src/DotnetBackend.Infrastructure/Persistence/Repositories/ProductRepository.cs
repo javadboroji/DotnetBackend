@@ -1,4 +1,6 @@
 
+using DotnetBackend.Application.Common.Pagination;
+using DotnetBackend.Application.Common.Pagnation;
 using DotnetBackend.Application.Products;
 using DotnetBackend.Domain.Entities;
 using DotnetBackend.Infrastructure.Persistence;
@@ -15,11 +17,26 @@ public class ProductRepository : IProductsRepository
         _context = context;
     }
 
-    public async Task<List<Product>> GetAllProductAsync()
+    public async Task<PagedResult<Product>> GetAllProductAsync(PageRequest request)
     {
-        return await _context.Products
-        .Where(product => product.IsActive)
-         .ToListAsync();
+        var query = _context.Products
+       .Where(p => p.IsActive);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+        .OrderBy(p => p.CreatedAt)
+        .Skip((request.Page - 1) * request.PageSize)
+        .Take(request.PageSize)
+        .ToListAsync();
+
+        return new PagedResult<Product>
+        {
+            Items = items,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<Product?> GetByIdAsync(Guid id)
@@ -33,7 +50,7 @@ public class ProductRepository : IProductsRepository
         return await _context.Products
                 .FirstOrDefaultAsync(p => p.Id == id);
     }
-    
+
     public async Task AddAsync(Product product)
     {
         await _context.Products.AddAsync(product);

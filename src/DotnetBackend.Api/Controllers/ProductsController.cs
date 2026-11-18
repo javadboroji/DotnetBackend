@@ -1,3 +1,6 @@
+using DotnetBackend.Api.Common.Responses;
+using DotnetBackend.Application.Common.Pagination;
+using DotnetBackend.Application.Common.Pagnation;
 using DotnetBackend.Application.Products;
 using DotnetBackend.Application.Products.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +18,12 @@ public class ProductsController : ControllerBase
         _productService = productService;
     }
     [HttpGet]
-    public async Task<ActionResult<List<ProductResponseDto>>> GetAll()
+    public async Task<ActionResult<PagedResult<ProductResponseDto>>> GetAll([FromQuery] PageRequest request)
     {
-        var products = await _productService.GetAllAsync();
-        return Ok(products);
+        var products = await _productService.GetAllAsync(request);
+        return Ok(
+            ApiResponse<PagedResult<ProductResponseDto>>.Ok(products, "Products retrieved successfully.")
+        );
     }
 
     [HttpGet("{id:guid}")]
@@ -26,10 +31,9 @@ public class ProductsController : ControllerBase
     {
         var product = await _productService.GetByIdAsync(id);
 
-        if (product is null)
-            return NotFound();
-
-        return Ok(product);
+        return Ok(
+            ApiResponse<ProductResponseDto>.Ok(product, "Product retrieved successfully.")
+        );
     }
 
     [HttpPost]
@@ -39,7 +43,10 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(
             nameof(GetById),
             new { id = productId },
-            new { id = productId }
+             ApiResponse<object>.Ok(
+            new { id = productId },
+            "Product created successfully."
+        )
         );
     }
 
@@ -48,7 +55,9 @@ public class ProductsController : ControllerBase
     {
         var updated = await _productService.UpdateAsync(id, request);
         if (!updated)
-            return NotFound();
+            return NotFound(
+                ApiResponse<object>.Fail("Product not found.")
+            );
 
         return Ok();
     }
@@ -58,18 +67,26 @@ public class ProductsController : ControllerBase
     {
         var deactivated = await _productService.DeactivateAsync(id);
         if (!deactivated)
-            return NotFound();
+            return NotFound(
+                ApiResponse<object>.Fail("Product not found.")
+            );
 
-        return Ok();
+        return Ok(
+            ApiResponse<object>.Ok(null, "Product deactivated successfully.")
+        );
     }
     [HttpPost("{id:guid}/activate")]
     public async Task<IActionResult> Activate(Guid id)
     {
         var activated = await _productService.ActivateAsync(id);
         if (!activated)
-            return NotFound();
+            return NotFound(
+                ApiResponse<object>.Fail("Product not found.")
+            );
 
-        return Ok();
+        return Ok(
+            ApiResponse<object>.Ok(null, "Product activated successfully.")
+        );
     }
 }
 

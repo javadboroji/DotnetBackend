@@ -2,7 +2,9 @@ using DotnetBackend.Application.Products;
 using DotnetBackend.Domain.Entities;
 using DotnetBackend.Application.Products.Dtos;
 using DotnetBackend.Application.Categories;
-
+using DotnetBackend.Application.Common.Exceptions;
+using DotnetBackend.Application.Common.Pagination;
+using DotnetBackend.Application.Common.Pagnation;
 namespace DotnetBackend.Application.Products;
 
 public class ProductService
@@ -17,19 +19,26 @@ public class ProductService
         _CategoryRepository = CategoryRepository;
     }
 
-    public async Task<List<ProductResponseDto>> GetAllAsync()
+    public async Task<PagedResult<ProductResponseDto>> GetAllAsync(PageRequest request)
     {
-        var products = await _ProductsRepository.GetAllProductAsync();
+        var products = await _ProductsRepository.GetAllProductAsync(request);
 
-        return products.Select(product => new ProductResponseDto
+        return new PagedResult<ProductResponseDto>
         {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Price = product.Price,
-            CategoryId = product.CategoryId
-        }
-        ).ToList();
+            Items = products.Items.Select(product => new ProductResponseDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                CategoryId = product.CategoryId
+            }
+             ).ToList(),
+            Page = products.Page,
+            PageSize = products.PageSize,
+            TotalCount = products.TotalCount
+
+        };
     }
 
     public async Task<ProductResponseDto?> GetByIdAsync(Guid id)
@@ -37,7 +46,7 @@ public class ProductService
         var product = await _ProductsRepository.GetByIdAsync(id);
 
         if (product is null)
-            return null;
+            throw new NotFoundException("Product not found.");
 
         return new ProductResponseDto
         {

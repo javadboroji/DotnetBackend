@@ -3,6 +3,7 @@ using DotnetBackend.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using DotnetBackend.Infrastructure.Persistence.Repositories;
 using DotnetBackend.Application.Categories;
+using DotnetBackend.Api.Common.Exceptions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -33,9 +34,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

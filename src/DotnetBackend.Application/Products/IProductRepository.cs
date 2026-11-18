@@ -1,10 +1,12 @@
+using DotnetBackend.Application.Common.Pagination;
+using DotnetBackend.Application.Common.Pagnation;
 using DotnetBackend.Domain.Entities;
 
 namespace DotnetBackend.Application.Products;
 
 public interface IProductsRepository
 {
-    Task<List<Product>> GetAllProductAsync();
+    Task<PagedResult<Product>> GetAllProductAsync(PageRequest request);
 
     Task<Product?> GetByIdAsync(Guid id);
 
