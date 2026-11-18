@@ -18,9 +18,9 @@ public class ProductsController : ControllerBase
         _productService = productService;
     }
     [HttpGet]
-    public async Task<ActionResult<PagedResult<ProductResponseDto>>> GetAll([FromQuery] PageRequest request)
+    public async Task<ActionResult<PagedResult<ProductResponseDto>>> GetAll([FromQuery] PageRequest request, [FromQuery] ProductFilterRequest filter)
     {
-        var products = await _productService.GetAllAsync(request);
+        var products = await _productService.GetAllAsync(request, filter);
         return Ok(
             ApiResponse<PagedResult<ProductResponseDto>>.Ok(products, "Products retrieved successfully.")
         );

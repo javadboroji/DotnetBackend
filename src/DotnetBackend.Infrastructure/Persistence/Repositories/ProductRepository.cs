@@ -17,18 +17,46 @@ public class ProductRepository : IProductsRepository
         _context = context;
     }
 
-    public async Task<PagedResult<Product>> GetAllProductAsync(PageRequest request)
+    public async Task<PagedResult<Product>> GetAllProductAsync(PageRequest request, ProductFilterRequest filter)
     {
         var query = _context.Products
        .Where(p => p.IsActive);
 
+        if (!string.IsNullOrWhiteSpace(filter.name))
+            query = query.Where(p => p.Name.Contains(filter.name));
+
+        if (filter.MinPrice.HasValue)
+            query = query.Where(p => p.Price >= filter.MinPrice.Value);
+
+        if (filter.MaxPrice.HasValue)
+            query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+
+        if (filter.categoryId.HasValue)
+            query = query.Where(p => p.CategoryId == filter.categoryId.Value);
+
         var totalCount = await query.CountAsync();
 
+        query = request.SortBy?.ToLower() switch
+        {
+            "name" => request.SortDescending
+                ? query.OrderByDescending(p => p.Name)
+                : query.OrderBy(p => p.Name),
+
+            "price" => request.SortDescending
+                ? query.OrderByDescending(p => p.Price)
+                : query.OrderBy(p => p.Price),
+
+            "createdat" => request.SortDescending
+                ? query.OrderByDescending(p => p.CreatedAt)
+                : query.OrderBy(p => p.CreatedAt),
+
+            _ => query.OrderByDescending(p => p.CreatedAt)
+        };
+
         var items = await query
-        .OrderBy(p => p.CreatedAt)
-        .Skip((request.Page - 1) * request.PageSize)
-        .Take(request.PageSize)
-        .ToListAsync();
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync();
 
         return new PagedResult<Product>
         {

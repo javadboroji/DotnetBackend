@@ -6,7 +6,7 @@ namespace DotnetBackend.Application.Products;
 
 public interface IProductsRepository
 {
-    Task<PagedResult<Product>> GetAllProductAsync(PageRequest request);
+    Task<PagedResult<Product>> GetAllProductAsync(PageRequest request ,ProductFilterRequest filter);
 
     Task<Product?> GetByIdAsync(Guid id);
 

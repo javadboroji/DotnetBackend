@@ -19,9 +19,9 @@ public class ProductService
         _CategoryRepository = CategoryRepository;
     }
 
-    public async Task<PagedResult<ProductResponseDto>> GetAllAsync(PageRequest request)
+    public async Task<PagedResult<ProductResponseDto>> GetAllAsync(PageRequest request,ProductFilterRequest filter)
     {
-        var products = await _ProductsRepository.GetAllProductAsync(request);
+        var products = await _ProductsRepository.GetAllProductAsync(request,filter);
 
         return new PagedResult<ProductResponseDto>
         {
